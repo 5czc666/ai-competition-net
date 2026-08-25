@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>阻燃植被筛选模型库</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">森林-城镇交界域</p>
+      <h1>阻燃植被筛选模型库</h1>
+    </div>
+    <div class="header-metrics" aria-label="数据库概览">
+      <div><span id="plantCount">0</span><small>候选记录</small></div>
+      <div><span id="referenceCount">0</span><small>引用来源</small></div>
+      <div><span>TOPSIS</span><small>综合排序</small></div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="input-panel" aria-labelledby="inputTitle">
+      <div class="panel-title">
+        <h2 id="inputTitle">当地特征</h2>
+        <button id="resetBtn" type="button" class="secondary">重置</button>
+      </div>
+
+      <form id="siteForm">
+        <fieldset>
+          <legend>区域与目标</legend>
+          <label>
+            省份/地区
+            <select id="province"></select>
+          </label>
+          <p id="provinceHint" class="form-hint">选择省份后自动填入省级粗略气候默认值；有本地数据时请继续修改详细输入。</p>
+          <div class="auto-field">
+            <span>自动识别生态区域</span>
+            <strong id="ecoRegionOut">-</strong>
+            <small id="ecoBasisOut">选择省份后自动显示，用于模型内部适生性判断。</small>
+          </div>
+          <label>
+            林型
+            <select id="forestType">
+              <option value="针阔混交林">针阔混交林</option>
+              <option value="阔叶混交林">阔叶混交林</option>
+              <option value="落叶松林">落叶松林</option>
+              <option value="林缘">交界域林缘</option>
+              <option value="高郁闭林带">高郁闭林带</option>
+              <option value="其他">其他</option>
+            </select>
+          </label>
+          <label>
+            栽植位置
+            <select id="plantingZone">
+              <option value="林带内">林带内</option>
+              <option value="林缘">林缘</option>
+              <option value="混播">林带内+林缘混播</option>
+            </select>
+          </label>
+          <label>
+            主要防火期
+            <select id="season">
+              <option value="autumn">秋季</option>
+              <option value="spring">春季</option>
+              <option value="all">春秋兼顾</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>气候环境（可用省份默认值）</legend>
+          <label>
+            年降雨量 <output id="rainOut">600</output> mm
+            <input id="rain" type="range" min="0" max="2600" value="600" step="10">
+          </label>
+          <label>
+            冬季最低温 <output id="minTempOut">-30</output> ℃
+            <input id="minTemp" type="range" min="-45" max="5" value="-30" step="1">
+          </label>
+          <label>
+            林带温度 <output id="microTempOut">15</output> ℃
+            <input id="microTemp" type="range" min="0" max="35" value="15" step="1">
+          </label>
+          <label>
+            相对湿度 <output id="humidityOut">65</output> %
+            <input id="humidity" type="range" min="20" max="100" value="65" step="1">
+          </label>
+          <label>
+            平均风速 <output id="windOut">2.0</output> m/s
+            <input id="wind" type="range" min="0" max="8" value="2" step="0.1">
+          </label>
+          <div class="detail-grid" aria-label="季节平均温度">
+            <label>春季均温 ℃<input id="springTemp" type="number" value="7" step="0.1"></label>
+            <label>夏季均温 ℃<input id="summerTemp" type="number" value="21" step="0.1"></label>
+            <label>秋季均温 ℃<input id="autumnTemp" type="number" value="7" step="0.1"></label>
+            <label>冬季均温 ℃<input id="winterTemp" type="number" value="-18" step="0.1"></label>
+          </div>
+          <div class="detail-grid" aria-label="季节降水量">
+            <label>春季降水 mm<input id="springRain" type="number" value="55" step="1"></label>
+            <label>夏季降水 mm<input id="summerRain" type="number" value="400" step="1"></label>
+            <label>秋季降水 mm<input id="autumnRain" type="number" value="80" step="1"></label>
+            <label>冬季降水 mm<input id="winterRain" type="number" value="10" step="1"></label>
+          </div>
+          <p class="form-hint">普通用户只选省份即可。若知道本地气象站或县域数据，修改季节均温和季节降水后推荐会更细。</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>立地与可燃物</legend>
+          <label>
+            坡度 <output id="slopeOut">12</output> 度
+            <input id="slope" type="range" min="0" max="45" value="12" step="1">
+          </label>
+          <label>
+            郁闭度 <output id="canopyOut">0.70</output>
+            <input id="canopy" type="range" min="0" max="1" value="0.7" step="0.01">
+          </label>
+          <label>
+            土壤厚度 <output id="soilDepthOut">20</output> cm
+            <input id="soilDepth" type="range" min="5" max="80" value="20" step="1">
+          </label>
+          <label>
+            可燃物载量 <output id="fuelLoadOut">3.0</output> t/ha
+            <input id="fuelLoad" type="range" min="0" max="8" value="3" step="0.1">
+          </label>
+          <label>
+            腐殖质厚度 <output id="humusOut">8</output> cm
+            <input id="humus" type="range" min="0" max="30" value="8" step="1">
+          </label>
+          <label>
+            土壤肥力
+            <select id="soilFertility">
+              <option value="一般">一般</option>
+              <option value="贫瘠">贫瘠</option>
+              <option value="肥沃">肥沃</option>
+            </select>
+          </label>
+          <div class="check-row" role="group" aria-label="候选类型">
+            <label><input id="includeHerbs" type="checkbox" checked> 草本</label>
+            <label><input id="includeWoody" type="checkbox" checked> 木本</label>
+            <label><input id="lowMaintenance" type="checkbox" checked> 低维护优先</label>
+          </div>
+        </fieldset>
+
+        <button id="runBtn" type="submit" class="primary">计算推荐</button>
+      </form>
+    </section>
+
+    <section class="results-panel" aria-labelledby="resultTitle">
+      <div class="panel-title">
+        <h2 id="resultTitle">推荐结果</h2>
+        <button id="exportBtn" type="button" class="secondary">导出JSON</button>
+      </div>
+
+      <div class="risk-strip pending" id="riskStrip">
+        <div>
+          <strong id="riskLevel">-</strong>
+          <span id="riskSummary">等待输入</span>
+        </div>
+        <div class="risk-bars" aria-label="条件指数">
+          <div class="risk-bar-item">
+            <div class="risk-bar-head"><span>气候条件</span><strong id="riskClimateScore">--</strong></div>
+            <span class="risk-track"><span id="riskClimate" class="risk-fill"></span></span>
+          </div>
+          <div class="risk-bar-item">
+            <div class="risk-bar-head"><span>可燃物条件</span><strong id="riskFuelScore">--</strong></div>
+            <span class="risk-track"><span id="riskFuel" class="risk-fill"></span></span>
+          </div>
+          <div class="risk-bar-item">
+            <div class="risk-bar-head"><span>立地条件</span><strong id="riskSiteScore">--</strong></div>
+            <span class="risk-track"><span id="riskSite" class="risk-fill"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <section class="province-map-panel" aria-labelledby="provinceMapTitle">
+        <div class="province-map-head">
+          <div>
+            <h3 id="provinceMapTitle">省级火险与种植示意</h3>
+            <p id="provinceMapSummary">选择省份后显示风险片区，点击计算后叠加推荐种植点。</p>
+          </div>
+          <div class="province-pie-card" aria-label="省级历史火险占比">
+            <div id="provinceRiskPie" class="province-pie" aria-hidden="true">
+              <span id="provinceRiskPieValue">--</span>
+            </div>
+            <div>
+              <strong>相对全国占比</strong>
+              <span id="provinceRiskPieLabel">等待省份数据</span>
+            </div>
+          </div>
+        </div>
+        <div class="province-map-grid">
+          <div id="provinceRiskMap" class="province-risk-map" aria-label="省级火险示意地图"></div>
+          <div id="provinceMapLegend" class="province-map-legend"></div>
+        </div>
+      </section>
+
+      <div id="recommendations" class="recommendations"></div>
+    </section>
+  </main>
+
+  <section class="data-view">
+    <nav class="tabs" aria-label="数据库视图">
+      <button class="tab active" type="button" data-tab="database">数据库</button>
+      <button class="tab" type="button" data-tab="method">评价方法</button>
+      <button class="tab" type="button" data-tab="improve">加强建议</button>
+      <button class="tab" type="button" data-tab="refs">引用来源</button>
+    </nav>
+
+    <div id="database" class="tab-panel active">
+      <div class="table-tools">
+        <label>
+          检索
+          <input id="searchBox" type="search" placeholder="输入植物名、区域或类型">
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>名称</th>
+              <th>类型</th>
+              <th>区域</th>
+              <th>适用省份</th>
+              <th>综合分</th>
+              <th>燃烧指标</th>
+              <th>证据</th>
+              <th>适宜位置</th>
+              <th>数据缺口</th>
+            </tr>
+          </thead>
+          <tbody id="plantTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="method" class="tab-panel">
+      <div class="method-grid">
+        <article>
+          <h3>预筛</h3>
+          <p>先判断耐寒、耐旱、光照、土壤、郁闭度和林缘/林带内位置是否匹配。不匹配记录不会被直接删除，但会降低排序分。</p>
+        </article>
+        <article>
+          <h3>综合排序</h3>
+          <p>采用TOPSIS和加权指标共同排序，把文献阻燃表现、气候生境适配、可燃物调控、配置适配和证据质量统一为收益型指标，点击计算后输出相对推荐分。</p>
+        </article>
+        <article>
+          <h3>权重来源</h3>
+          <p>权重沿用AHP/TOPSIS框架，并用公开文献校正指标方向。新增文献只有排序或聚类等级时按原文归一化；同一候选集内对显示分做稳健拉伸。</p>
+        </article>
+      </div>
+      <div id="weightsView" class="weights-view"></div>
+    </div>
+
+    <div id="improve" class="tab-panel">
+      <div id="improvementList" class="improvement-list"></div>
+    </div>
+
+    <div id="refs" class="tab-panel">
+      <div id="referenceList" class="reference-list"></div>
+    </div>
+  </section>
+
+  <script src="data/database.js"></script>
+  <script src="data/extended_database.js"></script>
+  <script src="data/verified_expansion.js"></script>
+  <script src="data/decade_verified_sources.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
